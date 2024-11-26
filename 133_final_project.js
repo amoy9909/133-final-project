@@ -10,45 +10,7 @@ const notesInput = document.getElementById('notes-input');
 const notesDescriptionInput = document.getElementById('notes-description-input');
 const notesList = document.getElementById('notes-list');
 
-// Weather API for Irvine, CA (units in Fahrenheit)
-const APIKey = 'f571bd7cda6a13a4ffb92ac78efd2b10';
-const city = 'Irvine'; // Fixed city
-
-// Fetch weather data for Irvine, CA
-fetch(`https://api.openweathermap.org/data/2.5/weather?q=${city}&units=imperial&appid=${APIKey}`)
-  .then(response => response.json())
-  .then(json => {
-    if (json.cod === '404') {
-      alert('City not found. Please try again.');
-      return;
-    }
-
-    // Extract the relevant data
-    const temp = json.main.temp; // Temperature in Fahrenheit
-    const description = json.weather[0].description; // Weather description
-    const humidity = json.main.humidity; // Humidity
-    const windSpeed = json.wind.speed; // Wind speed
-
-    // Display the weather data
-    document.getElementById('weather-temp').textContent = `${temp}°F`;
-    document.getElementById('weather-description').textContent = capitalizeFirstLetter(description);
-    document.getElementById('weather-humidity').textContent = `Humidity: ${humidity}%`;
-    document.getElementById('weather-wind').textContent = `Wind Speed: ${windSpeed} m/s`;
-
-    // Make the weather box visible
-    document.getElementById('weather-box').style.display = 'block';
-  })
-  .catch(error => {
-    console.error('Error fetching weather data:', error);
-    alert('Failed to retrieve weather data. Please try again later.');
-  });
-
-// Helper function to capitalize the first letter of a string
-function capitalizeFirstLetter(string) {
-  return string.charAt(0).toUpperCase() + string.slice(1);
-}
-
-// Load tasks and notes from localStorage when the page loads
+// Load tasks and notes from local storage on page load
 document.addEventListener('DOMContentLoaded', () => {
   loadTasks();
   loadNotes();
@@ -60,9 +22,7 @@ taskForm.addEventListener('submit', addTask);
 // Add note event
 notesForm.addEventListener('submit', addNote);
 
-/* ======================
-      Task Functions
-====================== */
+// Task functions
 function addTask(e) {
   e.preventDefault();
 
@@ -71,27 +31,87 @@ function addTask(e) {
 
   if (!taskText) return;
 
-  const task = createListElement(taskText, taskDescription, false, 'task');
+  const task = createTaskElement(taskText, taskDescription, false);
   taskList.appendChild(task);
 
-  saveItem('tasks', { text: taskText, description: taskDescription, done: false });
+  saveItem({ text: taskText, description: taskDescription, done: false }, 'tasks');
 
-  // Clear inputs after adding
   taskInput.value = '';
   descriptionInput.value = '';
+}
+
+function createTaskElement(taskText, taskDescription, isDone) {
+  const li = document.createElement('li');
+  li.className = 'list-group-item d-flex justify-content-between align-items-start';
+
+  const taskContainer = document.createElement('div');
+  taskContainer.innerHTML = `<strong>${taskText}</strong><br>${taskDescription}`;
+  if (isDone) taskContainer.style.textDecoration = 'line-through';
+
+  const buttonsDiv = document.createElement('div');
+
+  const doneBtn = document.createElement('button');
+  doneBtn.textContent = 'Done';
+  doneBtn.className = 'btn btn-success btn-sm me-2';
+  doneBtn.addEventListener('click', () => toggleDone(taskContainer, taskText, 'tasks'));
+
+  const editBtn = document.createElement('button');
+  editBtn.textContent = 'Edit';
+  editBtn.className = 'btn btn-warning btn-sm me-2';
+  editBtn.addEventListener('click', () => editTask(li, taskContainer, 'tasks'));
+
+  const deleteBtn = document.createElement('button');
+  deleteBtn.textContent = 'Delete';
+  deleteBtn.className = 'btn btn-danger btn-sm';
+  deleteBtn.addEventListener('click', () => deleteItem(li, taskText, 'tasks'));
+
+  buttonsDiv.appendChild(doneBtn);
+  buttonsDiv.appendChild(editBtn);
+  buttonsDiv.appendChild(deleteBtn);
+
+  li.appendChild(taskContainer);
+  li.appendChild(buttonsDiv);
+
+  return li;
+}
+
+function toggleDone(taskContainer, taskText, type) {
+  const items = getItems(type);
+  const item = items.find((t) => t.text === taskText);
+  if (item) {
+    item.done = !item.done;
+    taskContainer.style.textDecoration = item.done ? 'line-through' : 'none';
+    localStorage.setItem(type, JSON.stringify(items));
+  }
+}
+
+function editTask(li, taskContainer, type) {
+  const items = getItems(type);
+  const oldText = taskContainer.firstChild.textContent;
+  const item = items.find((t) => t.text === oldText);
+
+  if (item) {
+    const newText = prompt('Edit your task title:', item.text);
+    const newDescription = prompt('Edit your task description:', item.description);
+
+    if (newText !== null && newText.trim() !== '') {
+      item.text = newText.trim();
+      item.description = newDescription || '';
+      taskContainer.innerHTML = `<strong>${item.text}</strong><br>${item.description}`;
+      localStorage.setItem(type, JSON.stringify(items));
+    }
+  }
 }
 
 function loadTasks() {
   const tasks = getItems('tasks');
   tasks.forEach(({ text, description, done }) => {
-    const task = createListElement(text, description, done, 'task');
+    const task = createTaskElement(text, description, done);
     taskList.appendChild(task);
   });
 }
 
-/* ======================
-      Notes Functions
-====================== */
+// Note functions
 function addNote(e) {
   e.preventDefault();
 
@@ -100,94 +120,72 @@ function addNote(e) {
 
   if (!noteText) return;
 
-  const note = createListElement(noteText, noteDescription, false, 'note');
+  const note = createNoteElement(noteText, noteDescription, false);
   notesList.appendChild(note);
 
-  saveItem('notes', { text: noteText, description: noteDescription, done: false });
+  saveItem({ text: noteText, description: noteDescription, done: false }, 'notes');
 
-  // Clear inputs after adding
   notesInput.value = '';
   notesDescriptionInput.value = '';
 }
 
-function loadNotes() {
-  const notes = getItems('notes');
-  notes.forEach(({ text, description, done }) => {
-    const note = createListElement(text, description, done, 'note');
-    notesList.appendChild(note);
-  });
-}
-
-/* ======================
-  Shared List Functions
-====================== */
-function createListElement(text, description, isDone, type) {
+function createNoteElement(noteText, noteDescription, isDone) {
   const li = document.createElement('li');
   li.className = 'list-group-item d-flex justify-content-between align-items-start';
 
-  const itemContainer = document.createElement('div');
-  itemContainer.innerHTML = `<strong>${text}</strong><br>${description}`;
-  if (isDone) itemContainer.style.textDecoration = 'line-through';
+  const noteContainer = document.createElement('div');
+  noteContainer.innerHTML = `<strong>${noteText}</strong><br>${noteDescription}`;
+  if (isDone) noteContainer.style.textDecoration = 'line-through';
 
   const buttonsDiv = document.createElement('div');
 
   const doneBtn = document.createElement('button');
   doneBtn.textContent = 'Done';
   doneBtn.className = 'btn btn-success btn-sm me-2';
-  doneBtn.addEventListener('click', () => toggleDone(itemContainer, text, type));
+  doneBtn.addEventListener('click', () => toggleDone(noteContainer, noteText, 'notes'));
 
   const editBtn = document.createElement('button');
   editBtn.textContent = 'Edit';
   editBtn.className = 'btn btn-warning btn-sm me-2';
-  editBtn.addEventListener('click', () => editItem(li, itemContainer, type));
+  editBtn.addEventListener('click', () => editTask(li, noteContainer, 'notes'));
 
   const deleteBtn = document.createElement('button');
   deleteBtn.textContent = 'Delete';
   deleteBtn.className = 'btn btn-danger btn-sm';
-  deleteBtn.addEventListener('click', () => deleteItem(li, text, type));
+  deleteBtn.addEventListener('click', () => deleteItem(li, noteText, 'notes'));
 
-  buttonsDiv.append(doneBtn, editBtn, deleteBtn);
-  li.append(itemContainer, buttonsDiv);
+  buttonsDiv.appendChild(doneBtn);
+  buttonsDiv.appendChild(editBtn);
+  buttonsDiv.appendChild(deleteBtn);
+
+  li.appendChild(noteContainer);
+  li.appendChild(buttonsDiv);
 
   return li;
 }
 
-function toggleDone(itemContainer, text, type) {
-  itemContainer.style.textDecoration = itemContainer.style.textDecoration === 'line-through' ? '' : 'line-through';
-  const items = getItems(type);
-  const item = items.find(item => item.text === text);
-  item.done = !item.done;
-  saveItems(type, items);
+function loadNotes() {
+  const notes = getItems('notes');
+  notes.forEach(({ text, description, done }) => {
+    const note = createNoteElement(text, description, done);
+    notesList.appendChild(note);
+  });
 }
 
+// Shared functions for tasks and notes
 function deleteItem(li, text, type) {
   li.remove();
   const items = getItems(type);
-  const filteredItems = items.filter(item => item.text !== text);
-  saveItems(type, filteredItems);
+  const filteredItems = items.filter((item) => item.text !== text);
+  localStorage.setItem(type, JSON.stringify(filteredItems));
 }
 
-function editItem(li, itemContainer, type) {
-  const newText = prompt('Edit Task or Note:', itemContainer.textContent.split('\n')[0]);
-  if (newText && newText.trim() !== '') {
-    const items = getItems(type);
-    const item = items.find(item => item.text === itemContainer.textContent.split('\n')[0]);
-    item.text = newText.trim();
-    saveItems(type, items);
-    itemContainer.innerHTML = `<strong>${newText}</strong><br>${item.description}`;
-  }
-}
-
-function saveItem(type, { text, description, done }) {
+function saveItem(item, type) {
   const items = getItems(type);
-  items.push({ text, description, done });
-  saveItems(type, items);
+  items.push(item);
+  localStorage.setItem(type, JSON.stringify(items));
 }
 
 function getItems(type) {
   return JSON.parse(localStorage.getItem(type)) || [];
-}
-
-function saveItems(type, items) {
-  localStorage.setItem(type, JSON.stringify(items));
 }

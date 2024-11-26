@@ -1,31 +1,50 @@
-/* styles.css */
+*{
+  margin: 0;
+  padding: 0;
+  border: 0;
+  outline: none;
+  box-sizing: border-box;
+}
+
 body {
-  font-family: Arial, sans-serif;
+  font-family: Cambria, sans-serif;
   margin: 0;
   padding: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
+  background-color: #f7f7f7;
 }
 
 #app {
   max-width: 600px;
   margin-top: 20px;
   padding: 20px;
-  background-color: #f9f9f9;
+  background-color: white;
   border-radius: 10px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
-h1, h2 {
-  text-align: center;
+@media (max-width: 768px) {
+  .card {
+    width: 100%; /* Set a percentage width */
+    max-width: 1000px; /* Set a maximum width */
+    margin: 0 auto; /* Center the card horizontally */
+  }
+
+  #task-list, #notes-list {
+    max-height: 200px; /* Reduce height on smaller screens */
+    list-style: none;
+    padding: 0;
+    overflow-y: auto;
+  }
 }
 
-form {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  margin-bottom: 20px;
+
+.card {
+  width: 100%; /* Set a percentage width */
+  max-width: 1000px; /* Set a maximum width */
+  margin: 0 auto; /* Center the card horizontally */
 }
 
 input, textarea, button {
@@ -34,59 +53,45 @@ input, textarea, button {
   border-radius: 5px;
 }
 
-button {
+.button {
   background-color: #007bff;
   color: white;
   cursor: pointer;
+  border: none;
 }
 
 button:hover {
   background-color: #0056b3;
 }
 
-#task-list {
-  list-style-type: none;
+#task-list, #notes-list {
+  list-style: none;
   padding: 0;
+  overflow-y: auto;
 }
 
-.task-item {
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-  padding: 10px;
-  background-color: #e9ecef;
-  border: 1px solid #ccc;
-  border-radius: 5px;
-  margin-bottom: 10px;
+#task-input, #notes-input {
+  width: 100%; /* Full width within the form */
+  height: 40px; /* Adjust the height */
 }
 
-.task-item .delete-task {
-  align-self: flex-end;
-  background-color: #dc3545;
-  color: white;
-  padding: 5px 10px;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
+#description-input, #notes-description-input {
+  width: 100%; /* Full width within the form */
+  height: 80px; /* Adjust the height */
 }
 
-.task-item .delete-task:hover {
-  background-color: #b02a37;
-}
-
-footer {
-  position: fixed;
-  bottom: 0;
-  right: 0;
-  background: #f4f4f4;
-  padding: 10px;
+.list-group-item {
   display: flex;
   justify-content: space-between;
-  width: 100%;
-  box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1);
+  align-items: center;
+  padding: 10px;
+  margin-bottom: 5px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  background-color: #f9f9f9;
 }
 
-#time, #weather {
-  font-size: 14px;
-  margin: 0 15px;
+.list-group-item button {
+  margin-left: 10px;
+  font-size: 12px;
 }
