@@ -6,3 +6,7 @@ https://www.w3schools.com/bootstrap/bootstrap_ref_all_classes.asp --> used to he
 https://www.w3schools.com/html/html5_webstorage.asp --> used to help store data locally
 https://codesandbox.io/p/sandbox/todo-list-using-html-css-and-js-8kew0?file=%2Fstyle.css --> referenced for creating the task list
 https://www.w3schools.com/howto/howto_js_todolist.asp --> referenced to build task list
+
+
+Comments:
+We found a way to code together asynchronously without having to constantly push and pull code through Github, resulting in a lack of use in frequent code updates in repo. 
